@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGRO-EXPERT — Diagnosa Hama &amp; Penyakit Padi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #142B1C;
+    --bg-deep: #0E2015;
+    --surface: #FBF7EC;
+    --surface-alt: #F1E9D2;
+    --ink: #1B2B1E;
+    --muted: #5C6B5D;
+    --leaf: #5B8C3E;
+    --leaf-dark: #3B5E28;
+    --leaf-pale: #DCE9CE;
+    --gold: #D4A017;
+    --gold-dark: #A87B0E;
+    --rust: #A6432B;
+    --line: rgba(27,43,30,0.14);
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(14,32,21,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 20% -10%, rgba(91,140,62,0.35), transparent 55%),
+      radial-gradient(ellipse at 100% 0%, rgba(212,160,23,0.12), transparent 45%);
+    color: var(--ink);
+    font-family: 'Public Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .wrap{ max-width: 900px; margin: 0 auto; padding: 0 20px 120px; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding: 56px 20px 40px;
+    text-align:center;
+    color: var(--leaf-pale);
+    position:relative;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(212,160,23,0.12);
+    border: 1px solid rgba(212,160,23,0.35);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  .hero h1{
+    font-size: clamp(34px, 6vw, 54px);
+    color: #FBF7EC;
+    margin: 0 0 12px;
+    line-height: 1.05;
+  }
+  .hero h1 em{ color: var(--gold); font-style: normal; }
+  .hero p{
+    max-width: 540px; margin: 0 auto;
+    color: rgba(251,247,236,0.72);
+    font-size: 16px; line-height: 1.6;
+  }
+  .stalk{ width: 180px; height: auto; margin: 28px auto 6px; display:block; }
+
+  .stat-row{
+    display:flex; justify-content:center; gap: 28px;
+    margin-top: 34px; flex-wrap: wrap;
+  }
+  .stat{ text-align:left; }
+  .stat b{
+    display:block; font-family:'Fraunces',serif; font-size: 26px; color:#FBF7EC;
+  }
+  .stat span{ font-size: 12px; color: rgba(251,247,236,0.55); text-transform:uppercase; letter-spacing:0.06em; }
+
+  /* ---------- PANEL ---------- */
+  .panel{
+    background: var(--surface);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding: 34px clamp(18px, 4vw, 40px) 30px;
+    margin-top: 10px;
+  }
+  .panel-head{ margin-bottom: 22px; }
+  .panel-head .kicker{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--leaf-dark); font-weight:700;
+  }
+  .panel-head h2{ font-size: 24px; margin: 6px 0 6px; color: var(--ink); }
+  .panel-head p{ color: var(--muted); font-size: 14.5px; line-height:1.6; margin:0; }
+
+  /* symptom groups */
+  .group{ margin-bottom: 22px; }
+  .group-title{
+    display:flex; align-items:center; gap:10px;
+    font-size: 13px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+    color: var(--leaf-dark);
+    margin-bottom: 12px;
+  }
+  .group-title .idx{
+    width:22px;height:22px; border-radius:50%; background:var(--leaf-dark); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-family:'JetBrains Mono',monospace;
+  }
+  .chips{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:10px; }
+  .chip{
+    position:relative;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 14px 12px 42px;
+    font-size: 13.5px; line-height:1.45;
+    cursor:pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+    user-select:none;
+  }
+  .chip:hover{ border-color: var(--leaf); }
+  .chip input{ position:absolute; opacity:0; }
+  .chip .box{
+    position:absolute; left:12px; top:12px;
+    width:18px; height:18px; border-radius:5px;
+    border: 1.5px solid #B9C3B4;
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .chip .box svg{ width:12px; height:12px; opacity:0; transform: scale(0.6); transition: all .12s; }
+  .chip input:checked ~ .box{ background: var(--leaf); border-color: var(--leaf); }
+  .chip input:checked ~ .box svg{ opacity:1; transform: scale(1); }
+  .chip:has(input:checked){ background: var(--leaf-pale); border-color: var(--leaf); }
+
+  /* action bar */
+  .action-bar{
+    position: sticky; bottom: 16px;
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    background: var(--bg-deep);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-top: 26px;
+    box-shadow: 0 12px 26px rgba(14,32,21,0.35);
+  }
+  .action-bar .count{ color: rgba(251,247,236,0.75); font-size:13px; font-family:'JetBrains Mono',monospace; }
+  .action-bar .count b{ color:#fff; }
+  .btns{ display:flex; gap:8px; }
+  button{ font-family:'Public Sans',sans-serif; border:none; cursor:pointer; border-radius:10px; }
+  .btn-primary{
+    background: var(--gold); color: #2A1D02; font-weight:700; font-size:14px;
+    padding: 12px 22px;
+    transition: transform .1s, background .15s;
+  }
+  .btn-primary:hover{ background:#E4B12B; }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-ghost{
+    background: transparent; color: rgba(251,247,236,0.6); font-size:13px;
+    padding: 12px 14px; border:1px solid rgba(251,247,236,0.2);
+  }
+  .btn-ghost:hover{ color:#fff; border-color:rgba(251,247,236,0.4); }
+
+  /* ---------- RESULTS ---------- */
+  .results{ margin-top: 34px; display:none; }
+  .results.show{ display:block; }
+  .results-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px;}
+  .results-head h2{ color:#FBF7EC; font-size:22px; margin:0; }
+  .results-head span{ color: rgba(251,247,236,0.55); font-size:12.5px; font-family:'JetBrains Mono',monospace; }
+
+  .card{
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 22px 22px 20px;
+    margin-bottom: 16px;
+    position: relative;
+    border: 1px dashed rgba(27,43,30,0.25);
+    box-shadow: var(--shadow);
+  }
+  .card.top{ border: 1.5px solid var(--gold); background: linear-gradient(180deg, #FFFDF6, var(--surface) 40%); }
+  .stamp{
+    position:absolute; top:18px; right:18px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    width:64px; height:64px; border-radius:50%;
+    border: 2px solid currentColor;
+    transform: rotate(8deg);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .stamp b{ font-size:16px; line-height:1; }
+  .stamp span{ font-size:8px; text-transform:uppercase; letter-spacing:0.05em; }
+  .conf-high{ color: var(--leaf-dark); }
+  .conf-mid{ color: var(--gold-dark); }
+  .conf-low{ color: var(--rust); }
+
+  .card-eyebrow{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px;}
+  .card h3{ font-size: 20px; margin: 0 6px 2px 0; max-width: 74%; }
+  .card .latin{ font-style: italic; color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+  .matched{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .matched span{
+    font-size:11.5px; background: var(--leaf-pale); color:var(--leaf-dark);
+    padding:4px 9px; border-radius:999px; font-weight:600;
+  }
+
+  .bar-track{ height:7px; border-radius:999px; background:var(--surface-alt); overflow:hidden; margin-bottom:16px;}
+  .bar-fill{ height:100%; border-radius:999px; background: linear-gradient(90deg, var(--leaf), var(--gold)); }
+
+  .rec{ margin-top: 6px; }
+  .rec h4{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--leaf-dark); margin:14px 0 8px; }
+  .rec ol, .rec ul{ margin:0; padding-left: 20px; font-size:13.5px; line-height:1.65; color: var(--ink); }
+  .rec li{ margin-bottom: 4px; }
+
+  .empty{
+    text-align:center; padding: 30px 10px; color: rgba(251,247,236,0.6); font-size:14px;
+  }
+
+  .disclaimer{
+    margin-top: 26px; font-size:12px; line-height:1.6; color: rgba(251,247,236,0.55);
+    border-top: 1px solid rgba(251,247,236,0.14); padding-top:16px;
+  }
+
+  footer{ text-align:center; padding: 30px 20px 10px; color: rgba(251,247,236,0.4); font-size:12px; }
+
+  @media (max-width:560px){
+    .chips{ grid-template-columns: 1fr; }
+    .action-bar{ flex-direction:column; align-items:stretch; }
+    .btns{ justify-content:space-between; }
+    .card h3{ max-width: 66%; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow"><span class="dot"></span> Sistem Pakar Diagnosa Tanaman Padi</div>
+  <h1>AGRO<em>-EXPERT</em></h1>
+  <p>Kenali hama dan penyakit padi dari gejala di lapangan sebelum menyemprot. Pilih gejala yang terlihat, dan sistem akan menyusun diagnosa berdasarkan basis pengetahuan petani &amp; penyuluh.</p>
+
+  <svg class="stalk" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M100 138 C100 100 90 90 95 60 C100 35 100 20 100 5" stroke="#D4A017" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M95 60 C 70 55 55 40 50 20" stroke="#5B8C3E" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M97 75 C 122 68 138 52 145 30" stroke="#5B8C3E" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M98 95 C 75 92 62 80 58 62" stroke="#5B8C3E" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <g fill="#D4A017">
+      <ellipse cx="100" cy="8" rx="4.5" ry="7"/>
+      <ellipse cx="93" cy="16" rx="4.5" ry="7" transform="rotate(-18 93 16)"/>
+      <ellipse cx="107" cy="16" rx="4.5" ry="7" transform="rotate(18 107 16)"/>
+      <ellipse cx="88" cy="26" rx="4.5" ry="7" transform="rotate(-30 88 26)"/>
+      <ellipse cx="112" cy="26" rx="4.5" ry="7" transform="rotate(30 112 26)"/>
+      <ellipse cx="100" cy="30" rx="4.5" ry="7"/>
+      <ellipse cx="92" cy="37" rx="4.5" ry="7" transform="rotate(-20 92 37)"/>
+      <ellipse cx="108" cy="37" rx="4.5" ry="7" transform="rotate(20 108 37)"/>
+    </g>
+  </svg>
+
+  <div class="stat-row">
+    <div class="stat"><b>8</b><span>Hama &amp; Penyakit</span></div>
+    <div class="stat"><b>28</b><span>Indikator Gejala</span></div>
+    <div class="stat"><b>&lt;1 min</b><span>Waktu Diagnosa</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="kicker">Langkah 1 — Amati &amp; Centang</div>
+      <h2>Gejala apa yang terlihat di sawah Anda?</h2>
+      <p>Centang semua gejala yang sesuai. Semakin lengkap gejala yang dipilih, semakin akurat hasil diagnosanya. Gejala dikelompokkan menurut bagian tanaman yang diamati.</p>
+    </div>
+
+    <div id="groups"></div>
+
+    <div class="action-bar">
+      <div class="count"><b id="countNum">0</b> gejala dipilih</div>
+      <div class="btns">
+        <button class="btn-ghost" id="resetBtn">Atur Ulang</button>
+        <button class="btn-primary" id="diagBtn">Diagnosa Sekarang →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="results-head">
+      <h2>Hasil Diagnosa</h2>
+      <span id="resultMeta"></span>
+    </div>
+    <div id="cards"></div>
+    <div class="disclaimer">
+      AGRO-EXPERT adalah alat bantu pengambilan keputusan berbasis basis pengetahuan umum, bukan pengganti pemeriksaan langsung. Untuk kasus serangan berat atau meluas, konfirmasikan diagnosa dengan Penyuluh Pertanian Lapangan (PPL) atau Dinas Pertanian setempat sebelum melakukan penyemprotan massal.
+    </div>
+  </div>
+</div>
+
+<footer>AGRO-EXPERT · Sistem Pakar Diagnosa Hama &amp; Penyakit Padi · Studi Kasus Jawa Barat</footer>
+
+<script>
+/* ---------------------------------------------------------
+   BASIS PENGETAHUAN (Knowledge Base)
+--------------------------------------------------------- */
+const SYMPTOM_GROUPS = [
+  {
+    title: "Daun",
+    items: [
+      ["bercak_belah_ketupat","Bercak coklat berbentuk belah ketupat / menyerupai mata, tepi kuning"],
+      ["bercak_coklat_oval","Bercak coklat oval kecil, tersebar merata di daun"],
+      ["daun_kuning_ujung","Daun menguning mulai dari ujung daun"],
+      ["daun_kuning_tepi","Daun menguning mulai dari tepi / pinggir daun"],
+      ["garis_kuning_berair","Garis kuning berair memanjang searah tulang daun"],
+      ["daun_kuning_oranye","Daun berubah warna kuning kejinggaan (oranye terang)"],
+      ["daun_layu_gulung","Daun layu dan menggulung ke dalam"],
+      ["daun_kering_cepat","Daun cepat mengering / mati meski bagian lain masih hijau"],
+      ["daun_sempit_tegak","Daun tumbuh sempit, kaku, dan tegak"]
+    ]
+  },
+  {
+    title: "Batang & Pelepah",
+    items: [
+      ["bercak_oval_pelepah","Bercak oval keabu-abuan pada pelepah, dekat permukaan air"],
+      ["bercak_pelepah_menyatu","Bercak pada pelepah menyatu jadi bercak besar tak beraturan"],
+      ["lubang_batang","Ditemukan lubang kecil bekas gerekan pada batang"],
+      ["serangga_pangkal","Serangga kecil berkerumun di pangkal batang saat digoyang"],
+      ["tanaman_terbakar","Sebagian petak sawah tampak kering seperti terbakar"],
+      ["bau_busuk_pangkal","Tercium bau busuk dari pangkal batang yang membusuk"]
+    ]
+  },
+  {
+    title: "Malai & Anakan",
+    items: [
+      ["pucuk_mati","Pucuk / tunas muda mati dan mudah dicabut (sundep)"],
+      ["malai_hampa_putih","Malai putih, berdiri tegak, dan hampa berisi (beluk)"],
+      ["anakan_sedikit","Jumlah anakan lebih sedikit dari tanaman sehat sekitarnya"],
+      ["anakan_banyak_kecil","Anakan tumbuh berlebihan tapi berukuran kecil-kecil"],
+      ["malai_terhambat","Malai sulit keluar atau keluar tidak sempurna"],
+      ["bercak_pada_biji","Ditemukan bercak coklat pada bulir / biji padi"]
+    ]
+  },
+  {
+    title: "Pertumbuhan & Lingkungan",
+    items: [
+      ["tanaman_kerdil","Pertumbuhan tanaman nyata lebih pendek dari sekitarnya"],
+      ["muncul_berkelompok","Gejala muncul berkelompok sejak fase bibit / tanaman muda"],
+      ["cuaca_lembab_panas","Cuaca belakangan lembab dengan pergantian panas-dingin"],
+      ["hujan_angin","Gejala menyebar cepat setelah hujan disertai angin kencang"],
+      ["rimbun_lembab","Rumpun tanaman rimbun / rapat dengan kelembaban tinggi"],
+      ["tanah_kurang_hara","Kondisi tanah miskin hara / pemupukan kurang"],
+      ["musim_kering","Sedang berlangsung musim kemarau / cuaca kering"]
+    ]
+  }
+];
+
+const LABELS = Object.fromEntries(SYMPTOM_GROUPS.flatMap(g=>g.items));
+
+const DISEASES = [
+  {
+    id:"blas", name:"Penyakit Blas (Blast)", latin:"Pyricularia oryzae", type:"Penyakit Jamur",
+    symptoms:{ bercak_belah_ketupat:3, daun_kering_cepat:2, daun_kuning_ujung:1, cuaca_lembab_panas:2, malai_terhambat:1 },
+    treatment:[
+      "Semprotkan fungisida berbahan aktif triazol atau strobilurin sesuai dosis anjuran kemasan.",
+      "Hentikan sementara pemupukan nitrogen berlebih karena memperparah infeksi.",
+      "Perbaiki drainase sawah agar kelembaban di sekitar tajuk tanaman berkurang."
+    ],
+    prevention:[
+      "Gunakan varietas padi tahan blas untuk musim tanam berikutnya.",
+      "Terapkan rotasi tanaman dengan palawija setelah 2-3 musim padi berturut-turut.",
+      "Atur jarak tanam agar sirkulasi udara antar rumpun lebih baik."
+    ]
+  },
+  {
+    id:"hdb", name:"Hawar Daun Bakteri (Kresek)", latin:"Xanthomonas oryzae pv. oryzae", type:"Penyakit Bakteri",
+    symptoms:{ daun_kuning_tepi:3, garis_kuning_berair:3, daun_layu_gulung:2, hujan_angin:2, bau_busuk_pangkal:1 },
+    treatment:[
+      "Gunakan bakterisida berbahan aktif tembaga (copper) atau streptomisin sesuai anjuran.",
+      "Kurangi genangan air yang berlebihan, karena bakteri menyebar lewat air.",
+      "Buang dan musnahkan rumpun yang terserang berat agar tidak jadi sumber penular."
+    ],
+    prevention:[
+      "Pilih benih sehat dan varietas tahan hawar daun bakteri.",
+      "Hindari pemupukan nitrogen berlebihan saat musim hujan.",
+      "Bersihkan sisa jerami dan gulma inang setelah panen."
+    ]
+  },
+  {
+    id:"tungro", name:"Penyakit Tungro", latin:"Rice tungro virus (vektor: wereng hijau)", type:"Penyakit Virus",
+    symptoms:{ daun_kuning_oranye:3, tanaman_kerdil:2, anakan_sedikit:2, muncul_berkelompok:2, malai_terhambat:1 },
+    treatment:[
+      "Kendalikan vektor wereng hijau dengan insektisida sistemik sesuai anjuran, bukan menyemprot virusnya langsung.",
+      "Cabut dan musnahkan rumpun bergejala berat untuk memutus sumber virus.",
+      "Tanam serempak dengan sawah sekitar agar siklus wereng hijau terputus."
+    ],
+    prevention:[
+      "Gunakan varietas padi tahan tungro dan tahan wereng hijau.",
+      "Terapkan tanam serempak dan pergiliran varietas antar musim.",
+      "Pantau populasi wereng hijau sejak persemaian dengan perangkap kuning."
+    ]
+  },
+  {
+    id:"wbc", name:"Wereng Batang Coklat (Hopperburn)", latin:"Nilaparvata lugens", type:"Hama Serangga",
+    symptoms:{ tanaman_terbakar:3, serangga_pangkal:3, daun_kering_cepat:1, musim_kering:1 },
+    treatment:[
+      "Semprotkan insektisida sistemik/kontak khusus wereng batang coklat pada pangkal batang, bukan pucuk daun.",
+      "Kuras dan keringkan petak sawah selama 2-3 hari untuk menekan populasi wereng.",
+      "Hindari penyemprotan insektisida berspektrum luas yang membunuh musuh alami wereng."
+    ],
+    prevention:[
+      "Gunakan varietas tahan wereng batang coklat dan lakukan pergiliran varietas.",
+      "Jaga jarak tanam tidak terlalu rapat agar sawah tidak lembab dan gelap di pangkal rumpun.",
+      "Lestarikan musuh alami seperti laba-laba dan kumbang predator wereng."
+    ]
+  },
+  {
+    id:"penggerek", name:"Penggerek Batang Padi (Sundep/Beluk)", latin:"Scirpophaga spp.", type:"Hama Serangga",
+    symptoms:{ pucuk_mati:3, malai_hampa_putih:3, lubang_batang:2, anakan_sedikit:1 },
+    treatment:[
+      "Kumpulkan dan musnahkan kelompok telur ngengat penggerek yang terlihat di daun.",
+      "Aplikasikan insektisida berbahan aktif fipronil atau klorantraniliprol saat populasi ngengat tinggi.",
+      "Potong dan buang batang bergejala sundep untuk mencegah penyebaran ke rumpun sehat."
+    ],
+    prevention:[
+      "Gunakan lampu perangkap (light trap) untuk memantau dan mengurangi populasi ngengat.",
+      "Tanam serempak antar petak untuk memutus siklus hidup hama.",
+      "Bersihkan sisa tunggul jerami setelah panen karena jadi tempat hama bertahan."
+    ]
+  },
+  {
+    id:"hawar_pelepah", name:"Hawar Pelepah / Busuk Pelepah", latin:"Rhizoctonia solani", type:"Penyakit Jamur",
+    symptoms:{ bercak_oval_pelepah:3, bercak_pelepah_menyatu:2, rimbun_lembab:2, malai_terhambat:1 },
+    treatment:[
+      "Semprotkan fungisida berbahan aktif validamisin atau heksakonazol pada pangkal pelepah.",
+      "Kurangi kepadatan rumpun dengan penjarangan agar sirkulasi udara membaik.",
+      "Turunkan permukaan air sawah karena jamur menyebar lewat genangan."
+    ],
+    prevention:[
+      "Atur jarak tanam tidak terlalu rapat sejak awal tanam.",
+      "Hindari pemupukan nitrogen berlebihan yang membuat tanaman terlalu rimbun.",
+      "Bersihkan gulma di pematang yang bisa jadi inang jamur."
+    ]
+  },
+  {
+    id:"kerdil_rumput", name:"Kerdil Rumput / Kerdil Hampa", latin:"Rice grassy/ragged stunt virus", type:"Penyakit Virus",
+    symptoms:{ tanaman_kerdil:3, anakan_banyak_kecil:2, daun_sempit_tegak:2, malai_terhambat:1 },
+    treatment:[
+      "Kendalikan populasi wereng batang coklat sebagai vektor pembawa virus.",
+      "Cabut dan musnahkan rumpun bergejala kerdil untuk mengurangi sumber penularan.",
+      "Jangan gunakan benih dari petak yang pernah terserang untuk musim berikutnya."
+    ],
+    prevention:[
+      "Gunakan varietas tahan wereng batang coklat sebagai langkah pencegahan utama.",
+      "Lakukan tanam serempak dan hindari tanam terus-menerus sepanjang tahun.",
+      "Pantau populasi wereng sejak persemaian."
+    ]
+  },
+  {
+    id:"bercak_coklat", name:"Bercak Coklat (Brown Spot)", latin:"Bipolaris oryzae", type:"Penyakit Jamur",
+    symptoms:{ bercak_coklat_oval:3, bercak_pada_biji:2, tanah_kurang_hara:2, daun_kering_cepat:1 },
+    treatment:[
+      "Semprotkan fungisida berbahan aktif mankozeb atau propikonazol sesuai dosis anjuran.",
+      "Perbaiki kesuburan tanah dengan pemupukan kalium dan hara mikro yang cukup.",
+      "Gunakan benih bersertifikat bebas dari infeksi jamur ini."
+    ],
+    prevention:[
+      "Lakukan uji tanah dan pemupukan berimbang, terutama kalium.",
+      "Rendam benih dengan larutan fungisida sebelum semai.",
+      "Hindari lahan yang kekurangan air atau kekeringan pada fase vegetatif."
+    ]
+  }
+];
+
+/* ---------------------------------------------------------
+   RENDER SYMPTOM CHECKLIST
+--------------------------------------------------------- */
+const groupsEl = document.getElementById('groups');
+SYMPTOM_GROUPS.forEach((g, gi)=>{
+  const wrap = document.createElement('div');
+  wrap.className = 'group';
+  wrap.innerHTML = `<div class="group-title"><span class="idx">${gi+1}</span>${g.title}</div>
+    <div class="chips">
+      ${g.items.map(([id,label])=>`
+        <label class="chip">
+          <input type="checkbox" value="${id}">
+          <span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          ${label}
+        </label>`).join('')}
+    </div>`;
+  groupsEl.appendChild(wrap);
+});
+
+const checkboxes = () => Array.from(document.querySelectorAll('#groups input[type=checkbox]'));
+const countNum = document.getElementById('countNum');
+
+function updateCount(){
+  const n = checkboxes().filter(c=>c.checked).length;
+  countNum.textContent = n;
+}
+groupsEl.addEventListener('change', updateCount);
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  checkboxes().forEach(c=>c.checked=false);
+  updateCount();
+  document.getElementById('results').classList.remove('show');
+});
+
+/* ---------------------------------------------------------
+   INFERENCE ENGINE
+--------------------------------------------------------- */
+document.getElementById('diagBtn').addEventListener('click', ()=>{
+  const selected = new Set(checkboxes().filter(c=>c.checked).map(c=>c.value));
+  const resultsEl = document.getElementById('results');
+  const cardsEl = document.getElementById('cards');
+  const metaEl = document.getElementById('resultMeta');
+  cardsEl.innerHTML = '';
+
+  if(selected.size === 0){
+    cardsEl.innerHTML = `<div class="card"><div class="empty">Pilih minimal satu gejala terlebih dahulu untuk memulai diagnosa.</div></div>`;
+    resultsEl.classList.add('show');
+    metaEl.textContent = '';
+    resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+
+  // Score each disease: sum of matched weights / total weights of that disease
+  const scored = DISEASES.map(d=>{
+    const entries = Object.entries(d.symptoms);
+    const totalWeight = entries.reduce((s,[,w])=>s+w,0);
+    let matchedWeight = 0;
+    const matchedLabels = [];
+    entries.forEach(([sym,w])=>{
+      if(selected.has(sym)){ matchedWeight += w; matchedLabels.push(LABELS[sym]); }
+    });
+    const confidence = totalWeight ? matchedWeight/totalWeight : 0;
+    return { ...d, confidence, matchedLabels, matchedCount: matchedLabels.length };
+  })
+  .filter(d => d.matchedCount > 0)
+  .sort((a,b)=> b.confidence - a.confidence || b.matchedCount - a.matchedCount);
+
+  const shown = scored.filter(d=>d.confidence >= 0.25).slice(0,4);
+  const finalList = shown.length ? shown : scored.slice(0,1);
+
+  if(finalList.length === 0){
+    cardsEl.innerHTML = `<div class="card"><div class="empty">Gejala yang dipilih belum cukup cocok dengan pola hama/penyakit dalam basis pengetahuan. Coba tambahkan gejala lain yang teramati, atau konsultasikan langsung ke PPL setempat.</div></div>`;
+    resultsEl.classList.add('show');
+    metaEl.textContent = '';
+    resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+
+  metaEl.textContent = `${selected.size} gejala dianalisis · ${finalList.length} kemungkinan ditemukan`;
+
+  finalList.forEach((d, i)=>{
+    const pct = Math.round(d.confidence*100);
+    const confClass = pct>=70 ? 'conf-high' : pct>=45 ? 'conf-mid' : 'conf-low';
+    const card = document.createElement('div');
+    card.className = 'card' + (i===0 ? ' top' : '');
+    card.innerHTML = `
+      <div class="stamp ${confClass}"><b>${pct}%</b><span>cocok</span></div>
+      <div class="card-eyebrow">${i===0?'Diagnosa Utama':'Kemungkinan Lain'} · ${d.type}</div>
+      <h3>${d.name}</h3>
+      <div class="latin">${d.latin}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="matched">${d.matchedLabels.map(l=>`<span>${l}</span>`).join('')}</div>
+      <div class="rec">
+        <h4>Rekomendasi Penanganan</h4>
+        <ol>${d.treatment.map(t=>`<li>${t}</li>`).join('')}</ol>
+        <h4>Pencegahan Musim Berikutnya</h4>
+        <ul>${d.prevention.map(t=>`<li>${t}</li>`).join('')}</ul>
+      </div>
+    `;
+    cardsEl.appendChild(card);
+  });
+
+  resultsEl.classList.add('show');
+  resultsEl.scrollIntoView({behavior:'smooth', block:'start'});
+});
+</script>
+</body>
+</html>
